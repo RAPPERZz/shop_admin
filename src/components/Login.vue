@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="form" status-icon :rules="rules" :model="form" label-width="80px">
-      <img src="../assets/avatar.jpg" alt="">
+      <img src="../assets/avatar.jpg" alt>
       <el-form-item label="用户名:" prop="username">
         <el-input v-model="form.username" placeholder="请输入用户名"></el-input>
       </el-form-item>
