@@ -299,12 +299,7 @@ export default {
 }
 </script>
 
-<style>
-.el-breadcrumb {
-  height: 50px;
-  line-height: 50px;
-  padding-left: 10px;
-}
+<style lang="less" scped>
 .input-with-select {
   width: 300px;
   margin-bottom: 5px;
