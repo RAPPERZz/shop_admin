@@ -43,7 +43,13 @@
             size="mini"
             @click="delUser(scope.row.id)"
           ></el-button>
-          <el-button type="success" icon="el-icon-check" plain size="mini">分配角色</el-button>
+          <el-button
+            type="success"
+            icon="el-icon-check"
+            plain
+            size="mini"
+            @click="showAssignDialog(scope.row)"
+          >分配角色</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -100,6 +106,28 @@
         <el-button type="primary" @click="updateUser">确 定</el-button>
       </span>
     </el-dialog>
+    <!-- 分配角色对话框 -->
+    <el-dialog title="分配角色" :visible.sync="assignDialogVisible" width="40%">
+      <el-form ref="assignForm" :model="assignForm" label-width="80px" status-icon>
+        <el-form-item label="用户名">
+          <el-tag type="info">{{assignForm.username}}</el-tag>
+        </el-form-item>
+        <el-form-item label="角色列表">
+          <el-select v-model="assignForm.rid" placeholder="请选择">
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="assignDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="assignRole">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -110,7 +138,7 @@ export default {
       userList: [],
       query: '',
       pagenum: 1,
-      pagesize: 2,
+      pagesize: 6,
       total: 0,
       addDialogVisible: false,
       addForm: {
@@ -126,6 +154,13 @@ export default {
         email: '',
         mobile: ''
       },
+      assignDialogVisible: false,
+      assignForm: {
+        id: '',
+        username: '',
+        rid: ''
+      },
+      roleList: [],
       rules: {
         username: [
           { required: true, message: '用户名不能为空', trigger: 'blur' },
@@ -154,12 +189,10 @@ export default {
   methods: {
     // 修改用户状态
     async changeStarte({ id, mg_state: mgState }) {
-      // console.log(user)
       let res = await this.axios({
         method: 'put',
         url: `users/${id}/state/${mgState}`
       })
-      // console.log(res)
       let {
         meta: { status }
       } = res
@@ -176,7 +209,6 @@ export default {
     },
     // 修改显示页码
     handleCurrentChange(val) {
-      // console.log(val)
       this.pagenum = val
       this.getUserList()
     },
@@ -196,10 +228,8 @@ export default {
         data: { users, total }
       } = res
       if (status === 200) {
-        console.log(res)
         this.userList = users
         this.total = total
-        // console.log(res.users)
       }
     },
     //  搜索用户
@@ -223,7 +253,6 @@ export default {
           meta: { status }
         } = res
         if (status === 200) {
-          console.log(res)
           if (this.userList.length <= 1 && this.pagenum > 1) {
             this.pagenum--
           }
@@ -265,8 +294,6 @@ export default {
     },
     // 显示修改用户对话框
     showEditDialog(row) {
-      console.log(row)
-
       this.editDialogVisible = true
       this.editForm.id = row.id
       this.editForm.username = row.username
@@ -294,6 +321,46 @@ export default {
           this.$message.error('服务器异常')
         }
       })
+    },
+    // 用户id查看角色回显
+    async getUserInfo(id) {
+      let res = await this.axios(`users/${id}`)
+      if (res.meta.status === 200) {
+        let rid = res.data.rid
+        if (rid === -1) {
+          rid = ''
+        }
+        this.assignForm.rid = rid
+      }
+    },
+    // 显示分配角色对话框
+    async showAssignDialog(user) {
+      this.assignDialogVisible = true
+      this.assignForm.id = user.id
+      this.assignForm.username = user.username
+
+      this.getUserInfo(user.id)
+
+      let res = await this.axios('roles')
+      if (res.meta.status === 200) {
+        this.roleList = res.data
+        console.log(this.roleList)
+      }
+    },
+    async assignRole() {
+      if (!this.assignForm.rid) {
+        this.$message.error('请选择一个角色')
+        return
+      }
+      let res = await this.axios.put(`users/${this.assignForm.id}/role`, {
+        rid: this.assignForm.rid
+      })
+      if (res.meta.status === 200) {
+        this.$refs.assignForm.resetFields()
+        this.assignDialogVisible = false
+        this.getUserList()
+        this.$message.success('分配角色成功了')
+      }
     }
   }
 }

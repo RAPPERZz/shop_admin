@@ -7,7 +7,7 @@
       <el-breadcrumb-item>权限列表</el-breadcrumb-item>
     </el-breadcrumb>
     <!-- 渲染表格 -->
-    <el-table :data="rightsList" highlight-current-row style="width: 100%">
+    <el-table :data="rightsList" style="width: 100%">
       <el-table-column type="index"></el-table-column>
       <el-table-column prop="authName" label="权限名称"></el-table-column>
       <el-table-column prop="path" label="路径"></el-table-column>
@@ -38,7 +38,6 @@ export default {
       } = res
       if (status === 200) {
         this.rightsList = data
-        console.log(this.rightsList)
       }
     }
   },
